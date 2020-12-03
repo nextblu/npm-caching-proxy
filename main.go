@@ -9,11 +9,6 @@ import (
 	"strings"
 )
 
-
-/*
-	Structs
-*/
-
 /*
 	Getters
 */
