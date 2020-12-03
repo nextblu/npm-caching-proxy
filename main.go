@@ -29,16 +29,20 @@ func getProxyUrl(filename string) string {
 	if strings.Contains(filename, ".tgz") {
 		if _, err := os.Stat("/cache/"+proxyCondition); err == nil {
 			// path/to/whatever exists
+			log.Printf("The required file is actually cached, serving\n")
 			return internalHandler
 		} else if os.IsNotExist(err) {
 			// path/to/whatever does *not* exist
+			log.Printf("The file is not cached, returning origin and starting cache collection\n")
 			return defaultOrigin
 		} else {
 			// Schrodinger: file may or may not exist. See err for details
 			// Therefore, do *NOT* use !os.IsNotExist(err) to test for file existence
+			log.Printf("The file is not cached, returning origin and starting cache collection\n")
 			return defaultOrigin
 		}
 	}
+	log.Printf("The requied url is not a file, returning origin\n")
 	return defaultOrigin
 }
 
