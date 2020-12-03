@@ -31,17 +31,20 @@ func getProxyUrl(filename string) string {
 	defaultOrigin := "http://registry.npmjs.org"
 	// Checking if file is already been cached
 	log.Printf("Required file: %s\n", proxyCondition)
-	if _, err := os.Stat("/cache/"+proxyCondition); err == nil {
-		// path/to/whatever exists
-		return internalHandler
-	} else if os.IsNotExist(err) {
-		// path/to/whatever does *not* exist
-		return defaultOrigin
-	} else {
-		// Schrodinger: file may or may not exist. See err for details
-		// Therefore, do *NOT* use !os.IsNotExist(err) to test for file existence
-		return defaultOrigin
+	if strings.Contains(filename, ".tgz") {
+		if _, err := os.Stat("/cache/"+proxyCondition); err == nil {
+			// path/to/whatever exists
+			return internalHandler
+		} else if os.IsNotExist(err) {
+			// path/to/whatever does *not* exist
+			return defaultOrigin
+		} else {
+			// Schrodinger: file may or may not exist. See err for details
+			// Therefore, do *NOT* use !os.IsNotExist(err) to test for file existence
+			return defaultOrigin
+		}
 	}
+	return defaultOrigin
 }
 
 /*
