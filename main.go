@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -9,9 +11,37 @@ import (
 	"strings"
 )
 
-/*
-	Getters
-*/
+
+func downloadFile(filepath string, url string) {
+	// Create the file
+	cleanedPath := strings.Split(filepath, "/")
+	log.Printf("Cleaned path: %s\n", cleanedPath)
+	filepath = "./cache/" + cleanedPath[1] +"/"+ cleanedPath[2] + "/" + cleanedPath[3]
+	url = "http://registry.npmjs.org" + url
+	log.Printf("Starting file download in the following directory: %s\n", filepath)
+	log.Printf("Starting file download from the following url: %s\n", url)
+	_ = os.MkdirAll("./cache/" + cleanedPath[1] +"/"+ cleanedPath[2] + "/", os.ModePerm)
+	out, err := os.Create(filepath)
+	if err != nil  {
+		fmt.Printf("Out file error %s\n", err)
+	}
+	defer out.Close()
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer resp.Body.Close()
+	// Check server response
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println(err)
+	}
+	// Writer the body to file
+	_, err = io.Copy(out, resp.Body)
+	if err != nil  {
+		fmt.Println(err)
+	}
+}
 
 // Get the port to listen on
 func getListenAddress() string {
@@ -21,19 +51,20 @@ func getListenAddress() string {
 
 // Get the url for a given proxy condition
 func getProxyUrl(filename string) string {
-	proxyCondition := strings.ToUpper(filename)
+	proxyCondition := filename
 	internalHandler := "http://localhost:3000"
 	defaultOrigin := "http://registry.npmjs.org"
 	// Checking if file is already been cached
 	log.Printf("Required file: %s\n", proxyCondition)
 	if strings.Contains(filename, ".tgz") {
-		if _, err := os.Stat("/cache/"+proxyCondition); err == nil {
+		if _, err := os.Stat("./cache/"+proxyCondition); err == nil {
 			// path/to/whatever exists
 			log.Printf("The required file is actually cached, serving\n")
 			return internalHandler
 		} else if os.IsNotExist(err) {
 			// path/to/whatever does *not* exist
 			log.Printf("The file is not cached, returning origin and starting cache collection\n")
+			go downloadFile(proxyCondition, filename)
 			return defaultOrigin
 		} else {
 			// Schrodinger: file may or may not exist. See err for details
