@@ -15,7 +15,6 @@ import (
 func downloadFile(filepath string, url string) {
 	// Create the file
 	cleanedPath := strings.Split(filepath, "/")
-	log.Printf("Cleaned path: %s\n", cleanedPath)
 	filepath = "./cache/" + cleanedPath[1] +"/"+ cleanedPath[2] + "/" + cleanedPath[3]
 	url = "http://registry.npmjs.org" + url
 	log.Printf("Starting file download in the following directory: %s\n", filepath)
@@ -129,8 +128,8 @@ func handleRequestAndRedirect(res http.ResponseWriter, req *http.Request) {
 
 // Internal http server, to be defined
 func internalHTTPServer(){
-	fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/cache/", http.StripPrefix("/cache/", fs))
+	fs := http.FileServer(http.Dir("./cache"))
+	http.Handle("./cache/", http.StripPrefix("./cache/", fs))
 
 	log.Println("Listening on :3000...")
 	err := http.ListenAndServe(":3000", nil)
